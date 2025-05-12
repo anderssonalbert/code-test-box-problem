@@ -23,7 +23,7 @@ class BoxServiceTest {
     }
 
     @ParameterizedTest
-    @MethodSource("sampleInput")
+    @MethodSource("se.callistaenterprise.boxproblem.common.TestUtil#sampleInput")
     void findValidBoxes(Map<Integer, Integer> articles, String expectedBoxId) {
         String actualId = boxService.findSuitableBox(Order.of(articles));
         assertEquals(expectedBoxId, actualId);
