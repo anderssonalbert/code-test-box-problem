@@ -1,4 +1,4 @@
-package se.callistaenterprise.boxproblem.domain;
+package se.callistaenterprise.boxproblem.model;
 
 public record Dimension(int width, int height) {
 

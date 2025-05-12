@@ -34,40 +34,30 @@ packa artiklarna i.
 - Endast en kartong får returneras som svar
 - Om artiklarna inte får plats i en kartong så får kunden hämta på plats - svara då "Upphämtning krävs"
 
-## Krav
+## Krav 
 
 - Lösningen skall ha enhetstester
 - Lösningen skall vara gjord i SpringBoot
 
 ## Exempel
 
-### Order 1
-
 - 6 st artikel 7
 - 2 st artikel 4
 - 4 st artikel 1
     - => kartong nr 2
-
-### Order 2
 
 - 3 st artikel 3
 - 1 st artikel 1
 - 1 st artikel 2
     - => kartong nr 1
 
-### Order 3
-
 - 1 st artikel 5
 - 3 st artikel 4
     - => kartong nr 2
 
-### Order 4
-
 - 12 st artikel 7
 - 100 st artikel 1
     - => "Upphämtning krävs"
-
-### Order 5
 
 - 4 st artikel 8
     - => kartong nr 1

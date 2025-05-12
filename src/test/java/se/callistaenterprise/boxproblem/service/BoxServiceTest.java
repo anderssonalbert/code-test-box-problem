@@ -3,46 +3,39 @@ package se.callistaenterprise.boxproblem.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import se.callistaenterprise.boxproblem.domain.Order;
+import se.callistaenterprise.boxproblem.api.dto.RowDto;
+import se.callistaenterprise.boxproblem.repository.ArticlesRepository;
+import se.callistaenterprise.boxproblem.repository.BoxRepository;
 
-import java.util.Map;
-import java.util.stream.Stream;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BoxServiceTest {
 
-    BoxService boxService;
+    private BoxService boxService;
 
     @BeforeEach
     void setUp() {
-        boxService = new BoxService();
+        ArticlesRepository articlesRepository = new ArticlesRepository();
+        BoxRepository boxRepository = new BoxRepository();
+        boxService = new BoxService(articlesRepository, boxRepository);
     }
 
     @ParameterizedTest
     @MethodSource("se.callistaenterprise.boxproblem.common.TestUtil#sampleInput")
-    void findValidBoxes(Map<Integer, Integer> articles, String expectedBoxId) {
-        String actualId = boxService.findSuitableBox(Order.of(articles));
+    void findSmallestBox_validArticles_returnsExpectedBoxId(List<RowDto> rows, String expectedBoxId) {
+        String actualId = boxService.findSmallestBox(rows);
         assertEquals(expectedBoxId, actualId);
     }
 
+
     @Test
-    void orderWithInvalidArticleIdThrowsException() {
-        NullPointerException nullPointerException = assertThrows(NullPointerException.class, () -> Order.of(Map.of(99, 100)));
-        assertEquals("Article with ID=99 does not exist", nullPointerException.getMessage());
+    void findSmallestBox_nonExistentArticleId_throwsIllegalArgumentException() {
+        var exception = assertThrows(IllegalArgumentException.class, () -> boxService.findSmallestBox(List.of(new RowDto(1, 99))));
+        assertEquals("Article with ID=99 does not exist", exception.getMessage());
     }
 
-    // Example inputs and expected responses from specification
-    static Stream<Arguments> sampleInput() {
-        return Stream.of(
-                Arguments.of(Map.of(7, 6, 4, 2, 1, 4), "2"),
-                Arguments.of(Map.of(3, 3, 1, 1, 2, 1), "1"),
-                Arguments.of(Map.of(5, 1, 4, 3), "2"),
-                Arguments.of(Map.of(7, 12, 1, 100), "Upphämtning krävs"),
-                Arguments.of(Map.of(8, 4), "1")
-        );
-    }
 }

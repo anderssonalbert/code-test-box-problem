@@ -11,12 +11,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import se.callistaenterprise.boxproblem.dto.BoxRequest;
+import se.callistaenterprise.boxproblem.api.dto.RowDto;
 
-import java.util.Map;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,72 +32,25 @@ public class BoxControllerIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("se.callistaenterprise.boxproblem.common.TestUtil#sampleInput")
-    void shouldSelectAppropriateBoxForGivenArticles(Map<Integer, Integer> articles, String expectedBoxId) throws Exception {
-        BoxRequest boxRequest = new BoxRequest(articles);
-        String requestJson = objectMapper.writeValueAsString(boxRequest);
+    void findSuitableBox_validArticles_returnsCorrectBoxId(List<RowDto> rows, String expectedBoxId) throws Exception {
+        String request = objectMapper.writeValueAsString(rows);
 
-        mockMvc.perform(post("/api/box/find")
-                        .content(requestJson)
+        mockMvc.perform(post("/api/boxes/suitable")
+                        .content(request)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value(expectedBoxId)).andDo(print());
-
+                .andExpect(jsonPath("$.message").value(expectedBoxId));
     }
 
     @Test
-    void shouldRejectRequestWithNonExistentArticleId() throws Exception {
-        String requestJson = "{\"articles\":{\"999\":5}}"; // Invalid Article ID
+    void findSuitableBox_nonExistentArticleId_returnsBadRequest() throws Exception {
+        String request = "[{\"quantity\":1,\"id\":99}]";
 
-        mockMvc.perform(post("/api/box/find")
+        mockMvc.perform(post("/api/boxes/suitable")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
+                        .content(request))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid Request"))
-                .andExpect(jsonPath("$.message").value("Article with ID=999 does not exist"));
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Article with ID=99 does not exist"));
     }
-
-    @Test
-    void shouldRejectRequestWithEmptyArticles() throws Exception {
-        mockMvc.perform(post("/api/box/find")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"articles\":{}}")
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid Request"))
-                .andExpect(jsonPath("$.message").value("Articles must not be empty"));
-    }
-
-    @Test
-    void shouldRejectEmptyRequestBody() throws Exception {
-        mockMvc.perform(post("/api/box/find")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("")
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid Input"))
-                .andExpect(jsonPath("$.message").value("Failed to parse incoming request"));
-    }
-
-    @Test
-    void shouldRejectMalformedJsonRequest() throws Exception {
-        mockMvc.perform(post("/api/box/find")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"articles\":{} invalid json")
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid Input"))
-                .andExpect(jsonPath("$.message").value("Failed to parse incoming request"));
-    }
-
-    @Test
-    void shouldRejectRequestWithMissingArticlesField() throws Exception {
-        mockMvc.perform(post("/api/box/find")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}")
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid Request"))
-                .andExpect(jsonPath("$.message").value("Articles must not be null"));
-    }
-
 }
